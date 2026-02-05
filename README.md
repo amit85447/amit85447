@@ -1,49 +1,81 @@
-- 👋 Hi, I’m @amit85447
-- 👀 I’m interested in computer and data science
-- - 🌱 I’m currently learning python computer language 
-- 💞️ I’m looking to collaborate on GitHub
-- 📫 How to reach me amitsarotri@gmail.com
+import torch
+import torch.nn as nn
+class Net(nn.Module):
+  def __init__(self,hidden_size,dropout):
+    super().__init__() # Fixed: changed super(),__init__() to super().__init__()
+    self.fc1=nn.Linear(10,hidden_size)
+    self.relu=nn.ReLU() # Fixed: changed nn.Relu() to nn.ReLU()
+    self.dropout=nn.Dropout(dropout)
+    self.fc2=nn.Linear(hidden_size,1)
+
+  def forward(self,x):
+    x=self.fc1(x)
+    x=self.relu(x) # Fixed: changed X to x
+    x=self.dropout(x)
+    x=self.fc2(x)
+    return x
+
+def train_model(model, optimizer, criterion, x, y, epochs=50):
+  model.train() # Set model to training mode
+  for epoch in range(epochs):
+    optimizer.zero_grad()
+    output = model(x)
+    loss = criterion(output, y)
+    loss.backward()
+    optimizer.step()
+  return loss.item() # Return the last loss after training
+
+learning_rates=[0.1,0.01,0.0001] # Fixed: changed 00.1 to 0.01
+hidden_sizes=[16,32,64]
+dropouts=[0.0,0.2,0.5]
+best_loss=float('inf')
+
+batch_size=64
+x = torch.randn(batch_size,10)
+y = torch.randn(batch_size,1)
+
+best_params=None
+best_model = None # Initialized best_model
+
+for lr in learning_rates:
+  for hs in hidden_sizes:
+    for dp in dropouts:
+      model=Net(hs,dp)
+      optimizer=torch.optim.Adam(model.parameters(),lr=lr)
+      criterion=nn.MSELoss()
+      # Removed train_loader from arguments as it's not used in train_model
+      loss=train_model(model,optimizer,criterion,x,y)
+      if loss < best_loss: # Fixed: changed loss<loss to loss < best_loss
+        best_loss=loss
+        best_model=model
+        best_params=(lr,hs,dp)
+
+print(best_params)
+print(best_loss)
 
 
->  Projects:
-> 🚀 Projects
-🌦️ Weather Management System
+optimizer=torch.optim.Adam(best_model.parameters(),lr=0.01)
+scheduler=torch.optim.lr_scheduler.StepLR(optimizer,step_size=20,gamma=0.1)
+for epoch in range(100):
+  optimizer.zero_grad()
+  output=best_model(x)
+  loss=criterion(output,y)
+  loss.backward()
+  optimizer.step()
+  scheduler.step()
 
-Developed a Weather Management System that fetches and displays real-time weather data using APIs. Implemented features like temperature, humidity, wind speed, and weather condition analysis with a user-friendly interface.
+import optuna
 
-Tech Stack: Python, APIs, Pandas, Matplotlib
+def objective(trail):
+  lr=trail.suggest_loguniform('lr',1e-4,1e-1)
+  hidden=trail.suggest_int('hidden',16,128)
+  dropout=trail.suggest_uniform('dropout',0.0,0.5)
+  model=Net(hidden,dropout)
+  optimizer=torch.optim.Adam(model.parameters(),lr=lr)
+  criterion=nn.MSELoss()
+  loss=train_model(model,optimizer,criterion,x,y)
+  return loss
+  study=create_study(direction='minimize')
+  study.optimize(objective,n_trials=50)
+  print('study')
 
-🖥️ Desktop Applications using Tkinter
-
-Designed and developed multiple desktop-based applications using Tkinter, focusing on clean UI and smooth user interaction. Applications include form handling, calculators, data entry systems, and mini management tools.
-
-Tech Stack: Python, Tkinter
-
-🤖 Machine Learning Projects
-
-Built and deployed machine learning models for classification and regression problems. Worked on data preprocessing, feature engineering, model training, evaluation, and performance optimization.
-
-Tech Stack: Python, Pandas, NumPy, Scikit-learn
-
-🧠 Deep Learning Projects
-
-Implemented deep learning models using neural networks for tasks such as prediction and pattern recognition. Designed and trained models using dense layers and optimized them for better accuracy.
-
-Tech Stack: Python, TensorFlow / Keras
-
-🧑‍💻 Advanced AI Assistant
-
-Developed an advanced AI-based assistant capable of understanding user queries and performing intelligent responses. Integrated NLP techniques and automation features to enhance interaction and usability.
-
-Tech Stack: Python, NLP, Machine Learning, AI
-
-📊 Data Analysis & Visualization Projects
-
-Performed exploratory data analysis (EDA) and created insightful visualizations to support data-driven decision-making.
-
-Tech Stack: Python, Pandas, Matplotlib, Seaborn
-
-<!---
-amit85447/amit85447 is a ✨ special ✨ repository because its `README.md` (this file) appears on your GitHub profile.
-You can click the Preview link to take a look at your changes.
---->
